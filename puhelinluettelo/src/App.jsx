@@ -37,9 +37,11 @@ const AddInformation = ({
   )
 }
 
-const Notification = ({ message }) => {
+const Notification = ({ message, error }) => {
   if (message === null) {
     return null
+  } else if (error === true) {
+    return <div className="error">{message}</div>
   }
 
   return <div className="notification">{message}</div>
@@ -52,13 +54,13 @@ const App = () => {
   const [filter, setNewFilter] = useState('')
   const [showAll, setShowAll] = useState(false)
   const [notification, setNotification] = useState(null)
+  const [error, setError] = useState(false)
 
   useEffect(() => {
     personServices.getAll().then((initialPersons) => {
       setPersons(initialPersons)
     })
   }, [])
-  console.log(persons)
   console.log('render', persons.length, 'persons')
 
   const addNumber = (event) => {
@@ -92,15 +94,21 @@ const App = () => {
         name: newName,
         number: newNumber,
       }
-      personServices.create(nameObject).then(
-        (returnedPerson) => {
+      personServices
+        .create(nameObject)
+        .then((returnedPerson) => {
           setPersons(persons.concat(returnedPerson)),
             setNotification(`Added ${returnedPerson.name} successfully`)
-        },
+        })
+        .catch((error) => {
+          console.log(error.response.data)
+          setError(true)
+          setNotification(JSON.stringify(error.response.data))
+        }),
         setTimeout(() => {
           setNotification(null)
+          setError(false)
         }, 5000)
-      )
       setNewName('')
       setNewNumber('')
     }
@@ -141,7 +149,7 @@ const App = () => {
           />
           <br />
           <h3>add new</h3>
-          <Notification message={notification} />
+          <Notification message={notification} error={error} />
           <AddInformation
             newName={newName}
             newNumber={newNumber}

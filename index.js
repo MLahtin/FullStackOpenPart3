@@ -10,26 +10,23 @@ const errorHandler = (error, request, response, next) => {
 
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id' })
-  }
-
-  if (error.name === 'UnknownEndpoint') {
-    return response.status(400).send({ error: 'Unknown endpoint' })
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
   }
   next(error)
 }
-
-app.use(express.static('dist'))
-app.use(cors())
 morgan.token('req-body', function getBody(req) {
   return JSON.stringify(req.body)
 })
+
+app.use(express.static('dist'))
+app.use(cors())
 app.use(
   morgan(
     ':method :url :status :res[content-length] - :response-time ms :req-body'
   )
 )
 app.use(express.json())
-app.use(errorHandler)
 
 let persons = []
 
@@ -54,32 +51,30 @@ app.get('/api/persons/:id', (request, response) => {
     .catch((error) => next(error))
 })
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
   const body = request.body
-
-  if (body.name === undefined || body.number === undefined) {
-    return response.status(400).json({ error: 'Fields cannot be empty' })
-  }
 
   const record = new Number({
     name: body.name,
     number: body.number,
   })
 
-  record.save().then((savedNumber) => {
-    response.json(savedNumber)
-  })
+  record
+    .save()
+    .then((savedNumber) => {
+      response.json(savedNumber)
+    })
+    .catch((error) => next(error))
 })
 
 app.put('/api/persons/:id', (request, response, next) => {
-  const body = request.body
+  const { name, number } = request.body
 
-  const number = {
-    name: body.name,
-    number: body.number,
-  }
-
-  Number.findByIdAndUpdate(request.params.id, number, { new: true })
+  Number.findByIdAndUpdate(
+    request.params.id,
+    { name, number },
+    { new: true, runValidator: true, context: 'query' }
+  )
     .then((updatedNumber) => {
       response.json(updatedNumber)
     })
@@ -98,3 +93,4 @@ const PORT = process.env.PORT
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
+app.use(errorHandler)
