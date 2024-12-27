@@ -12,10 +12,9 @@ const create = (newObject) => {
   return request.then((response) => response.data)
 }
 
-const update = async (id, newObject) => {
-  const request = await axios.put(`${baseURL}/${id}`, newObject)
-  const remainingPersons = getAll()
-  return remainingPersons
+const update = (id, newObject) => {
+  const request = axios.put(`${baseURL}/${id}`, newObject)
+  return request.then((response) => response.data)
 }
 const deleteItem = (id) => {
   const request = axios.delete(`${baseURL}/${id}`)

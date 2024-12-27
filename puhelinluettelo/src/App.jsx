@@ -58,6 +58,7 @@ const App = () => {
       setPersons(initialPersons)
     })
   }, [])
+  console.log(persons)
   console.log('render', persons.length, 'persons')
 
   const addNumber = (event) => {
@@ -73,12 +74,15 @@ const App = () => {
         const numberObject = { name: existingName.name, number: newNumber }
         personServices
           .update(existingName.id, numberObject)
-          .then(
-            (newPersons) => setPersons(newPersons),
-            setNotification(
-              `Contact with ${existingName.name} edited successfully`
+          .then((response) => {
+            setPersons(
+              persons.map((person) =>
+                person.id !== response.id
+                  ? person
+                  : { ...person, number: response.number }
+              )
             )
-          )
+          }, setNotification(`Contact with ${existingName.name} edited successfully`))
         setTimeout(() => {
           setNotification(null)
         }, 5000)

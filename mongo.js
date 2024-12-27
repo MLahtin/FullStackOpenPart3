@@ -1,5 +1,4 @@
 const mongoose = require('mongoose')
-const { stringify } = require('querystring')
 
 if (process.argv.length > 5) {
   console.log(
