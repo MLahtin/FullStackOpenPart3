@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 require('dotenv').config()
 const express = require('express')
 const app = express()
@@ -27,8 +28,6 @@ app.use(
   )
 )
 app.use(express.json())
-
-let persons = []
 
 app.get('/api/persons', (request, response) => {
   Number.find({}).then((numbers) => {
